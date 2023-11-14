@@ -1,0 +1,121 @@
+﻿@using Blazor_Lab_Starter_Code
+@page "/returnbooks"
+@inject LibraryService libraryService
+
+<h3>Return Borrowed Books</h3>
+
+<button @onclick="ListBorrowedBooks">List Borrowed Books</button>
+<button @onclick="Return">Return Book</button>
+
+@if (showListBorrowedBooks)
+{
+    <h4>Borrowed Books</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>User Name</th>
+                <th>Book ID</th>
+                <th>Book Title</th>
+                <th>Book Author</th>
+                <th>Book ISBN</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in borrowedBooks)
+            {
+                foreach (var book in entry.Value)
+                {
+                    <tr>
+                        <td>@entry.Key.Id</td>
+                        <td>@entry.Key.Name</td>
+                        <td>@book.Id</td>
+                        <td>@book.Title</td>
+                        <td>@book.Author</td>
+                        <td>@book.ISBN</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@if (showReturnForm)
+{
+    <h4>Return Book</h4>
+    <div style="margin-bottom: 10px;">
+        <label>Enter User ID to Return a Book for:</label>
+        <input @bind="selectedUserId" />
+    </div>
+    <div>
+        <label>Enter Book ID to Return:</label>
+        <input @bind="selectedBookId" />
+    </div>
+    <button @onclick="ReturnBooks">Return</button>
+    <button @onclick="CancelReturn">Cancel</button>
+    <p>@resultMessage</p>
+}
+
+@code {
+    bool showListBorrowedBooks = false;
+    bool showReturnForm = false;
+    int selectedUserId;
+    int selectedBookId;
+    Dictionary<User, List<Book>> borrowedBooks = new Dictionary<User, List<Book>>();
+    List<Book> selectedUserBorrowedBooks = new List<Book>();
+    string resultMessage = string.Empty;
+
+    void ListBorrowedBooks()
+    {
+        ResetForms();
+        var borrowedBooksData = libraryService.GetBorrowedBooks();
+
+        if (borrowedBooksData.Any())
+        {
+            showListBorrowedBooks = true;
+            borrowedBooks = borrowedBooksData;
+        }
+        else
+        {
+            resultMessage = "No books are currently borrowed. Nothing to return.";
+        }
+    }
+
+    void Return()
+    {
+        ResetForms();
+        showListBorrowedBooks = true;
+        showReturnForm = true;
+    }
+
+    void ReturnBooks()
+    {
+        if (selectedUserId > 0 && selectedBookId > 0)
+        {
+            libraryService.ReturnBook(selectedUserId, selectedBookId);
+            resultMessage = "Book returned successfully!";
+        }
+        else
+        {
+            resultMessage = "Failed to return book. Please enter valid User and Book IDs.";
+        }
+    }
+
+    void CancelReturn()
+    {
+        ResetForms();
+    }
+
+    void ResetForms()
+    {
+        showListBorrowedBooks = false;
+        showReturnForm = false;
+        selectedUserId = 0;
+        selectedBookId = 0;
+        borrowedBooks = libraryService.GetBorrowedBooks();
+        selectedUserBorrowedBooks = new List<Book>();
+        resultMessage = string.Empty;
+    }
+}
+
+

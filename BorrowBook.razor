@@ -1,0 +1,121 @@
+﻿@using Blazor_Lab_Starter_Code
+@page "/borrowreturn"
+@inject LibraryService libraryService
+
+<h3>Borrow a Book</h3>
+
+<button @onclick="Borrow">Borrow Book</button>
+
+@if (showBorrowForm)
+{
+    <h4>Borrow Book</h4>
+    <div>
+        <label>Enter Book ID to Borrow:</label>
+        <input @bind="selectedBookId" />
+    </div>
+    <div>
+        <label>Enter User ID:</label>
+        <input @bind="selectedUserId" />
+    </div>
+
+    <button @onclick="BorrowBooks">Borrow</button>
+
+    @if (!string.IsNullOrWhiteSpace(resultMessage))
+    {
+        <p>@resultMessage</p>
+    }
+
+    @if (showListAvailableBooks && libraryService.GetBooks().Any() && libraryService.GetUsers().Any())
+    {
+        <div>
+            <h4>Available Books</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>ISBN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var book in libraryService.GetBooks())
+                    {
+                        <tr>
+                            <td>@book.Id</td>
+                            <td>@book.Title</td>
+                            <td>@book.Author</td>
+                            <td>@book.ISBN</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div>
+            <h4>Available Users</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in libraryService.GetUsers())
+                    {
+                        <tr>
+                            <td>@user.Id</td>
+                            <td>@user.Name</td>
+                            <td>@user.Email</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    bool showBorrowForm = false;
+    bool showListAvailableBooks = false;
+    int selectedBookId;
+    int selectedUserId;
+    string resultMessage = string.Empty;
+
+    void Borrow()
+    {
+        ResetForms();
+        showBorrowForm = true;
+        showListAvailableBooks = true;
+    }
+
+    void BorrowBooks()
+    {
+        var book = libraryService.GetBooks().FirstOrDefault(b => b.Id == selectedBookId);
+        var user = libraryService.GetUsers().FirstOrDefault(u => u.Id == selectedUserId);
+
+        if (book != null && user != null)
+        {
+            libraryService.BorrowBook(selectedBookId, selectedUserId);
+            resultMessage = "Book borrowed successfully!";
+        }
+        else
+        {
+            resultMessage = "Both book and user must be valid to borrow.";
+        }
+    }
+
+    void ResetForms()
+    {
+        showBorrowForm = false;
+        selectedBookId = 0;
+        selectedUserId = 0;
+        resultMessage = string.Empty;
+    }
+}
+
+
+
+

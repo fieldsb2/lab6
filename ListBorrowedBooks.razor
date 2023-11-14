@@ -1,0 +1,46 @@
+﻿@using Blazor_Lab_Starter_Code
+@page "/listborrowedbooks"
+@inject LibraryService libraryService
+
+<h3>List Borrowed Books</h3>
+
+@if (borrowedBooks.Count > 0)
+{
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>ISBN</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in borrowedBooks)
+            {
+                foreach (var book in entry.Value)
+                {
+                    <tr>
+                        <td>@entry.Key.Name</td>
+                        <td>@book.Title</td>
+                        <td>@book.Author</td>
+                        <td>@book.ISBN</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No books are currently borrowed.</p>
+}
+
+@code {
+    Dictionary<User, List<Book>> borrowedBooks = new Dictionary<User, List<Book>>();
+
+    protected override void OnInitialized()
+    {
+        borrowedBooks = libraryService.GetBorrowedBooks();
+    }
+}

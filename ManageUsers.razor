@@ -1,0 +1,182 @@
+﻿@using Blazor_Lab_Starter_Code
+@page "/manageusers"
+@inject LibraryService libraryService
+
+<h3>Manage Users</h3>
+
+<button @onclick="AddUser">Add User</button>
+<button @onclick="EditUser">Edit User</button>
+<button @onclick="DeleteUser">Delete User</button>
+<button @onclick="ListUsers">List Users</button>
+
+@if (showAddUserForm)
+{
+    <h4>Add New User</h4>
+    <div>
+        <label>Name:</label>
+        <input @bind="newUser.Name" />
+    </div>
+    <div>
+        <label>Email:</label>
+        <input @bind="newUser.Email" />
+    </div>
+    <button @onclick="SaveNewUser">Save</button>
+    <button @onclick="CancelAddUser">Cancel</button>
+}
+
+@if (showEditUserForm)
+{
+    <h4>Edit User</h4>
+    <div>
+        <label>Name:</label>
+        <input @bind="selectedUser.Name" />
+    </div>
+    <div>
+        <label>Email:</label>
+        <input @bind="selectedUser.Email" />
+    </div>
+    <button @onclick="SaveEditedUser">Save</button>
+    <button @onclick="CancelEditUser">Cancel</button>
+}
+
+@if (showListUsers)
+{
+    <h4>Users</h4>
+    @if (users.Any())
+    {
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@user.Name</td>
+                    <td>@user.Email</td>
+                    @if (showEditUserForm)
+                    {
+                        <td><a @onclick="() => SelectUserForEdit(user)">Edit</a></td>
+                    }
+                    else if (showDeleteUserForm)
+                    {
+                        <td><a @onclick="() => DeleteSelectedUser(user)">Delete</a></td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+    }
+    else
+    {
+        <p>No users found.</p>
+    }
+}
+
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <p>@message</p>
+}
+
+@code {
+    List<User> users = new List<User>();
+    User newUser = new User();
+    User selectedUser = new User();
+    bool showAddUserForm = false;
+    bool showEditUserForm = false;
+    bool showDeleteUserForm = false;
+    bool showListUsers = false;
+    string message = "";
+
+    void AddUser()
+    {
+        ResetForms();
+        showAddUserForm = true;
+    }
+
+    void EditUser()
+    {
+        ResetForms();
+        users = libraryService.GetUsers();
+        if (users.Any())
+        {
+            showListUsers = true;
+            showEditUserForm = true;
+        }
+        else
+        {
+            message = "No users found. Cannot edit.";
+        }
+    }
+
+    void DeleteUser()
+    {
+        ResetForms();
+        showListUsers = true;
+        showDeleteUserForm = true;
+    }
+
+    void ListUsers()
+    {
+        ResetForms();
+        showListUsers = true;
+        users = libraryService.GetUsers();
+    }
+
+    void SaveNewUser()
+    {
+        libraryService.AddUser(newUser);
+        ResetForms();
+        users = libraryService.GetUsers();
+        message = "New user added successfully.";
+    }
+
+    void SaveEditedUser()
+    {
+        libraryService.EditUser(selectedUser);
+        ResetForms();
+        users = libraryService.GetUsers();
+        message = "User edited successfully.";
+    }
+
+    void SelectUserForEdit(User user)
+    {
+        showEditUserForm = true;
+        selectedUser = user;
+    }
+
+    void DeleteSelectedUser(User user)
+    {
+        libraryService.DeleteUser(user.Id);
+        users = libraryService.GetUsers();
+        message = "User deleted successfully.";
+    }
+
+    void CancelAddUser()
+    {
+        ResetForms();
+    }
+
+    void CancelEditUser()
+    {
+        ResetForms();
+    }
+
+    void ResetForms()
+    {
+        showAddUserForm = false;
+        showEditUserForm = false;
+        showDeleteUserForm = false;
+        showListUsers = false;
+        newUser = new User();
+        selectedUser = new User();
+        message = "";
+    }
+}

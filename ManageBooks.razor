@@ -1,0 +1,193 @@
+﻿@using Blazor_Lab_Starter_Code
+@page "/managebooks"
+@inject LibraryService libraryService
+
+<h3>Manage Books</h3>
+
+<button @onclick="AddBook">Add Book</button>
+<button @onclick="EditBook">Edit Book</button>
+<button @onclick="DeleteBook">Delete Book</button>
+<button @onclick="ListBooks">List Books</button>
+
+@if (showAddBookForm)
+{
+    <h4>Add New Book</h4>
+    <div>
+        <label>Title:</label>
+        <input @bind="newBook.Title" />
+    </div>
+    <div>
+        <label>Author:</label>
+        <input @bind="newBook.Author" />
+    </div>
+    <div>
+        <label>ISBN:</label>
+        <input @bind="newBook.ISBN" />
+    </div>
+    <button @onclick="SaveNewBook">Save</button>
+    <button @onclick="CancelAddBook">Cancel</button>
+}
+
+@if (showEditBookForm)
+{
+    <h4>Edit Book</h4>
+    <div>
+        <label>Title:</label>
+        <input @bind="selectedBook.Title" />
+    </div>
+    <div>
+        <label>Author:</label>
+        <input @bind="selectedBook.Author" />
+    </div>
+    <div>
+        <label>ISBN:</label>
+        <input @bind="selectedBook.ISBN" />
+    </div>
+    <button @onclick="SaveEditedBook">Save</button>
+    <button @onclick="CancelEditBook">Cancel</button>
+}
+
+@if (showListBooks)
+{
+    <h4>Available Books</h4>
+    @if (books.Any())
+    {
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>ISBN</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var book in books)
+            {
+                <tr>
+                    <td>@book.Id</td>
+                    <td>@book.Title</td>
+                    <td>@book.Author</td>
+                    <td>@book.ISBN</td>
+                    @if (showEditBookForm)
+                    {
+                        <td><a @onclick="() => SelectBookForEdit(book)">Edit</a></td>
+                    }
+                    else if (showDeleteBookForm)
+                    {
+                        <td><a @onclick="() => DeleteSelectedBook(book)">Delete</a></td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+    }
+    else
+    {
+        <p>No books available.</p>
+    }
+}
+
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <p>@message</p>
+}
+
+@code {
+    List<Book> books = new List<Book>();
+    Book newBook = new Book();
+    Book selectedBook = new Book();
+    bool showAddBookForm = false;
+    bool showEditBookForm = false;
+    bool showListBooks = false;
+    bool showDeleteBookForm = false;
+
+
+    string message = "";
+
+    void AddBook()
+    {
+        ResetForms();
+        showAddBookForm = true;
+    }
+
+    void EditBook()
+    {
+        ResetForms();
+        books = libraryService.GetBooks();
+        if (books.Any())
+        {
+            showListBooks = true;
+            showEditBookForm = true;
+        }
+        else
+        {
+            message = "No books available. Cannot edit.";
+        }
+    }
+    void DeleteBook()
+    {
+        ResetForms();
+        showListBooks = true;
+        showDeleteBookForm = true;
+    }
+
+    void ListBooks()
+    {
+        ResetForms();
+        showListBooks = true;
+        books = libraryService.GetBooks();
+    }
+
+    void SaveNewBook()
+    {
+        libraryService.AddBook(newBook);
+        ResetForms();
+        books = libraryService.GetBooks();
+        message = "New book added successfully.";
+    }
+
+    void SaveEditedBook()
+    {
+        libraryService.EditBook(selectedBook);
+        ResetForms();
+        books = libraryService.GetBooks();
+        message = "Book edited successfully.";
+    }
+
+    void CancelAddBook()
+    {
+        ResetForms();
+    }
+
+    void CancelEditBook()
+    {
+        ResetForms();
+    }
+
+    void SelectBookForEdit(Book book)
+    {
+        showEditBookForm = true;
+        selectedBook = book;
+    }
+
+    void DeleteSelectedBook(Book book)
+    {
+        libraryService.DeleteBook(book.Id);
+        books = libraryService.GetBooks();
+        message = "Book deleted successfully.";
+    }
+
+    void ResetForms()
+    {
+        showAddBookForm = false;
+        showEditBookForm = false;
+        showDeleteBookForm = false;
+        showListBooks = false;
+        newBook = new Book();
+        selectedBook = new Book();
+        message = "";
+    }
+}
